@@ -44,28 +44,44 @@ class YourBot(StudentBot):
             if order.volume > 0:
                 self.hit(order)
 
-    def best_price(self, direction, prods: list[str], orderbooks: dict[str, OrderBook]): 
-        valid = True
-        price = 0
+    def best_price(self, direction, prods: list[str], orderbooks: dict[str, OrderBook]):
+        if direction not in ("BUY", "SELL"):
+            raise ValueError("direction must be BUY or SELL")
+
+        total_price = 0
         prices = []
         volume = None
         for prod in prods:
-            if not prod in orderbooks:
-                return
-            orderbook = orderbooks[prod]
-            quotes = orderbook.buy_orders if direction == "SELL" else orderbook.sell_orders
-            if len(quotes) > 0:
-                price += quotes[0].price
-                prices.append(quotes[0].price)
-                if volume == None:
-                    volume = quotes[0].volume
-                else:
-                    volume = min(volume, quotes[0].volume)
-            else:
-                return
+            orderbook = orderbooks.get(prod)
+            if orderbook is None:
+                return None
 
-        if valid:
-            return (price, 0 if volume == None else volume, prices)
+            quotes = orderbook.sell_orders if direction == "BUY" else orderbook.buy_orders
+            if not quotes:
+                return None
+
+            quote = quotes[0]
+            total_price += quote.price
+            prices.append(quote.price)
+            volume = quote.volume if volume is None else min(volume, quote.volume)
+
+        if volume is None or volume <= 0:
+            return None
+        return total_price, volume, prices
+
+    def execute_arbitrage(self, sell_quote, sell_products, buy_quote, buy_products):
+        volume = min(sell_quote[1], buy_quote[1])
+        if volume <= 0 or sell_quote[0] <= buy_quote[0]:
+            return
+
+        print("ARB Found:", sell_products, buy_products,
+              "Profit:", (sell_quote[0] - buy_quote[0]) * volume)
+        for product, price in zip(sell_products, sell_quote[2]):
+            self.hit(OrderRequest(product=product, side=Side.SELL,
+                                  price=price, volume=volume))
+        for product, price in zip(buy_products, buy_quote[2]):
+            self.hit(OrderRequest(product=product, side=Side.BUY,
+                                  price=price, volume=volume))
 
     def arbitrage(self, orderbooks: dict[str, OrderBook]):
         for arb_left, arb_right in self.arbs:
@@ -74,40 +90,11 @@ class YourBot(StudentBot):
             sell_left = self.best_price("SELL", arb_left, orderbooks)
             sell_right = self.best_price("SELL", arb_right, orderbooks)
 
-            if sell_left != None and buy_right != None:
-                profit_per = sell_left[0] - buy_right[0]
-                volume = min(sell_left[1], buy_right[1])
-                profit = profit_per * volume
-                # print("Profit per:", profit, profit_per, sell_left[0], buy_right[0])
-                if profit > 0:
-                    print("ARB Found:", arb_left, arb_right, "Profit:", profit)
-                    print("Prices:", sell_left[2], buy_right[2])
-                    print("Prices for each product:", list(zip(arb_left, sell_left[2])), list(zip(arb_right, buy_right[2])))
-                
-                    for i, prod in enumerate(arb_left):
-                        self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_left[2][i], volume=volume))
-                    for i, prod in enumerate(arb_right):
-                        self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_right[2][i], volume=volume))
-                    # arb possible 
+            if sell_left is not None and buy_right is not None:
+                self.execute_arbitrage(sell_left, arb_left, buy_right, arb_right)
 
-            if sell_right != None and buy_left != None:
-                profit_per = sell_right[0] - buy_left[0]
-                volume = min(sell_right[1], buy_left[1])
-                profit = profit_per * volume
-                # print("Profit per:", profit, profit_per, sell_right[0], buy_left[0])
-                if profit > 0:
-                    print("ARB Found:", arb_right, arb_left, "Profit:", profit)
-                    print("Prices:", sell_right[2], buy_left[2])
-                    print("Sell:", list(zip(arb_right, sell_right[2])), "Buy:", list(zip(arb_left, buy_left[2])))
-                    print("Prices for each product:", list(zip(arb_right, sell_right[2])), list(zip(arb_left, buy_left[2])))
-                    print("Volume:", volume)
-                
-
-                    for i, prod in enumerate(arb_right):
-                        self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_right[2][i], volume=volume))
-                    for i, prod in enumerate(arb_left):
-                        self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_left[2][i], volume=volume))
-                    # arb possible 
+            if sell_right is not None and buy_left is not None:
+                self.execute_arbitrage(sell_right, arb_right, buy_left, arb_left)
 
     def on_orderbooks(self, orderbooks: dict[str, OrderBook]):
         # TODO: implement smart money making strategies in this handler
@@ -120,4 +107,4 @@ class YourBot(StudentBot):
         # print(orderbooks.keys())
 
         self.arbitrage(orderbooks)    
-        self.regularize_position()
+        # self.regularize_position()
