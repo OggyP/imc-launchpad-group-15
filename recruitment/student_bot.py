@@ -1,7 +1,6 @@
 from base_bot import BaseBot
 from models import OrderBook, OrderRequest, OrderResponse, Trade
 
-
 class StudentBot(BaseBot):
     _orderbooks: dict[str, OrderBook]
     _positions: dict[str, int]
