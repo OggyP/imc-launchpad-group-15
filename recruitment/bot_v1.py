@@ -26,7 +26,7 @@ class YourBot(StudentBot):
         valid = True
         price = 0
         prices = []
-        volume = 0
+        volume = None
         for prod in prods:
             if not prod in orderbooks:
                 return
@@ -43,7 +43,7 @@ class YourBot(StudentBot):
                 return
 
         if valid:
-            return (price, volume, prices)
+            return (price, 0 if volume == None else volume, prices)
 
     def amount_to_buy_for_regularization(self, position: int):
         return 0
@@ -61,17 +61,7 @@ class YourBot(StudentBot):
             order = self.get_position_regularization_order(product, position)
             self.hit(order)
 
-    def on_orderbooks(self, orderbooks: dict[str, OrderBook]):
-
-        # TODO: implement smart money making strategies in this handler
-        # This will run everytime an orderbook updates.
-        # The method receives a dictionary of {PRODUCT_NAME (str): OrderBook}
-        # You are not guaranteed to have a valid orderbook for every product.
-
-        # products = [C, L, B, CLB, CL]     
-
-        print(orderbooks.keys())
-
+    def arbitrage(self, orderbooks: dict[str, OrderBook]):
         for arb_left, arb_right in self.arbs:
             buy_left = self.best_price("BUY", arb_left, orderbooks)
             buy_right = self.best_price("BUY", arb_right, orderbooks)
@@ -79,11 +69,10 @@ class YourBot(StudentBot):
             sell_right = self.best_price("SELL", arb_right, orderbooks)
 
             if sell_left != None and buy_right != None:
-                print("Profit per:", sell_left[0], buy_right[0])
                 profit_per = sell_left[0] - buy_right[0]
                 volume = min(sell_left[1], buy_right[1])
                 profit = profit_per * volume
-                print()
+                print("Profit per:", profit, profit_per, sell_left[0], buy_right[0])
                 if profit > 0:
                     print("ARB Found:", arb_left, arb_right, "Profit:", profit)
                     print("Prices:", sell_left[2], buy_right[2])
@@ -96,10 +85,10 @@ class YourBot(StudentBot):
                     # arb possible 
 
             if sell_right != None and buy_left != None:
-                print("Profit per:", sell_right[0], buy_left[0])
                 profit_per = sell_right[0] - buy_left[0]
                 volume = min(sell_right[1], buy_left[1])
                 profit = profit_per * volume
+                print("Profit per:", profit, profit_per, sell_right[0], buy_left[0])
                 if profit > 0:
                     print("ARB Found:", arb_right, arb_left, "Profit:", profit)
                     print("Prices:", sell_right[2], buy_left[2])
@@ -111,7 +100,6 @@ class YourBot(StudentBot):
                         self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_left[2][i], volume=buy_left[1]))
                     # arb possible 
 
-
     def on_orderbooks(self, orderbooks: dict[str, OrderBook]):
         # TODO: implement smart money making strategies in this handler
         # This will run everytime an orderbook updates.
@@ -122,37 +110,5 @@ class YourBot(StudentBot):
 
         print(orderbooks.keys())
 
-        
-
-
-        # print("Hitting LETTUCE")
-        # # WARNING: this code will attempt to buy 1 LETTUCE at price 20 for every iteration
-        # # self.hit(OrderRequest(product="LETTUCE", side=Side.BUY, price=20, volume=1))
-
-        # if print_feed_top:
-        #     for orderbook in orderbooks.values():
-        #         buy_quotes = orderbook.buy_orders
-        #         if len(buy_quotes) > 0:
-        #             print(
-        #                 "BEST BID for",
-        #                 orderbook.product,
-        #                 ":",
-        #                 buy_quotes[0].volume,
-        #                 "@ $",
-        #                 buy_quotes[0].price,
-        #             )
-
-        #         sell_quotes = orderbook.sell_orders
-        #         if len(sell_quotes) > 0:
-        #             print(
-        #                 "BEST ASK for",
-        #                 orderbook.product,
-        #                 ":",
-        #                 sell_quotes[0].volume,
-        #                 "@ $",
-        #                 sell_quotes[0].price,
-        #             )
-        # if print_positions:
-        #     print(self.get_positions())
-    
-        self.regularize_position()
+        self.arbitrage(orderbooks)    
+        # self.regularize_position()
