@@ -117,4 +117,4 @@ class YourBot(StudentBot):
         print(orderbooks.keys())
 
         self.arbitrage(orderbooks)    
-        # self.regularize_position()
+        self.regularize_position()
