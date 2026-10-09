@@ -85,9 +85,9 @@ class YourBot(StudentBot):
                     print("Prices for each product:", list(zip(arb_left, sell_left[2])), list(zip(arb_right, buy_right[2])))
                 
                     for i, prod in enumerate(arb_left):
-                        self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_left[2][i], volume=sell_left[1]))
+                        self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_left[2][i], volume=volume))
                     for i, prod in enumerate(arb_right):
-                        self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_right[2][i], volume=buy_right[1]))
+                        self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_right[2][i], volume=volume))
                     # arb possible 
 
             if sell_right != None and buy_left != None:
@@ -101,9 +101,9 @@ class YourBot(StudentBot):
                     print("Prices for each product:", list(zip(arb_right, sell_right[2])), list(zip(arb_left, buy_left[2])))
 
                     for i, prod in enumerate(arb_right):
-                        self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_right[2][i], volume=sell_right[1]))
+                        self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_right[2][i], volume=volume))
                     for i, prod in enumerate(arb_left):
-                        self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_left[2][i], volume=buy_left[1]))
+                        self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_left[2][i], volume=volume))
                     # arb possible 
 
     def on_orderbooks(self, orderbooks: dict[str, OrderBook]):
