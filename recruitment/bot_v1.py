@@ -46,6 +46,10 @@ class YourBot(StudentBot):
             return (price, volume, prices)
 
     def amount_to_buy_for_regularization(self, position: int):
+        if position > 100:
+            return -5
+        if position < -100:
+            return 5
         return 0
 
     def get_position_regularization_order(self, product: str, position: int):
