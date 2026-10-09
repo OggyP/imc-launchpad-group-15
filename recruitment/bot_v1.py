@@ -45,7 +45,33 @@ class YourBot(StudentBot):
         if valid:
             return (price, volume, prices)
 
-    def arb_attempt(self, orderbooks: dict[str, OrderBook]):
+    def amount_to_buy_for_regularization(self, position: int):
+        return 0
+
+    def get_position_regularization_order(self, product: str, position: int):
+        buy_volume = self.amount_to_buy_for_regularization(position)
+        side = Side.BUY if buy_volume >= 0 else Side.SELL
+        volume = abs(buy_volume)
+
+        return OrderRequest(product=product, price=1499 if side == Side.BUY else 2, side=side, volume=volume)
+
+    def regularize_position(self):
+        positions = self.get_positions()
+        for product, position in positions.items():
+            order = self.get_position_regularization_order(product, position)
+            self.hit(order)
+
+    def on_orderbooks(self, orderbooks: dict[str, OrderBook]):
+
+        # TODO: implement smart money making strategies in this handler
+        # This will run everytime an orderbook updates.
+        # The method receives a dictionary of {PRODUCT_NAME (str): OrderBook}
+        # You are not guaranteed to have a valid orderbook for every product.
+
+        # products = [C, L, B, CLB, CL]     
+
+        print(orderbooks.keys())
+
         for arb_left, arb_right in self.arbs:
             buy_left = self.best_price("BUY", arb_left, orderbooks)
             buy_right = self.best_price("BUY", arb_right, orderbooks)
@@ -128,3 +154,5 @@ class YourBot(StudentBot):
         #             )
         # if print_positions:
         #     print(self.get_positions())
+    
+        self.regularize_position()
