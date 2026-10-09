@@ -22,28 +22,6 @@ class YourBot(StudentBot):
                 ]
 
     # returns None if no quotes, else [price, volume]
-    def best_price(self, direction, prods: list[str], orderbooks: dict[str, OrderBook]): 
-        valid = True
-        price = 0
-        prices = []
-        volume = None
-        for prod in prods:
-            if not prod in orderbooks:
-                return
-            orderbook = orderbooks[prod]
-            quotes = orderbook.buy_orders if direction == "BUY" else orderbook.sell_orders
-            if len(quotes) > 0:
-                price += quotes[0].price
-                prices.append(quotes[0].price)
-                if volume == None:
-                    volume = quotes[0].volume
-                else:
-                    volume = min(volume, quotes[0].volume)
-            else:
-                return
-
-        if valid:
-            return (price, 0 if volume == None else volume, prices)
 
     def amount_to_buy_for_regularization(self, position: int):
         if position > 100:
@@ -65,6 +43,29 @@ class YourBot(StudentBot):
             order = self.get_position_regularization_order(product, position)
             if order.volume > 0:
                 self.hit(order)
+
+    def best_price(self, direction, prods: list[str], orderbooks: dict[str, OrderBook]): 
+        valid = True
+        price = 0
+        prices = []
+        volume = None
+        for prod in prods:
+            if not prod in orderbooks:
+                return
+            orderbook = orderbooks[prod]
+            quotes = orderbook.buy_orders if direction == "SELL" else orderbook.sell_orders
+            if len(quotes) > 0:
+                price += quotes[0].price
+                prices.append(quotes[0].price)
+                if volume == None:
+                    volume = quotes[0].volume
+                else:
+                    volume = min(volume, quotes[0].volume)
+            else:
+                return
+
+        if valid:
+            return (price, 0 if volume == None else volume, prices)
 
     def arbitrage(self, orderbooks: dict[str, OrderBook]):
         for arb_left, arb_right in self.arbs:
