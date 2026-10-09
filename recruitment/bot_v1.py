@@ -1,5 +1,6 @@
 from student_bot import StudentBot
 from models import OrderBook, OrderRequest, Side
+import time
 
 print_feed_top = True
 print_positions = True
@@ -12,6 +13,7 @@ CLB = "BURGER"
 CL = "SALAD"
 
 FEE = 0
+BLOCK_TIME = 2
 
 class YourBot(StudentBot):
     def __init__(self, *args, **kwargs):
@@ -20,6 +22,7 @@ class YourBot(StudentBot):
                     [[CLB], [C, L, B]],
                     [[CL], [C, L]]
                 ]
+        self.block_time = None
 
     # returns None if no quotes, else [price, volume]
 
@@ -68,6 +71,7 @@ class YourBot(StudentBot):
         return total_price, volume, prices
 
     def execute_arbitrage(self, sell_quote, sell_products, buy_quote, buy_products):
+        self.block_time = time.time() + BLOCK_TIME
         volume = min(sell_quote[1], buy_quote[1])
         if volume <= 0 or sell_quote[0] <= buy_quote[0]:
             return
@@ -104,5 +108,6 @@ class YourBot(StudentBot):
 
         # print(orderbooks.keys())
 
-        self.arbitrage(orderbooks)    
-        # self.regularize_position()
+        self.arbitrage(orderbooks)
+        if self.block_time is None or time.time() < self.block_time:
+            self.regularize_position()
