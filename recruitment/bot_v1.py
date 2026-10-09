@@ -107,10 +107,10 @@ class YourBot(StudentBot):
         print("ARB Found:", sell_products, buy_products,
               "Profit:", (sell_quote[0] - buy_quote[0]) * volume)
         for product, price in zip(sell_products, sell_quote[2]):
-            self.hit(OrderRequest(product=product, side=Side.SELL,
+            self.quote(OrderRequest(product=product, side=Side.SELL,
                                   price=price, volume=volume))
         for product, price in zip(buy_products, buy_quote[2]):
-            self.hit(OrderRequest(product=product, side=Side.BUY,
+            self.quote(OrderRequest(product=product, side=Side.BUY,
                                   price=price, volume=volume))
 
     def arbitrage(self, orderbooks: dict[str, OrderBook]):
