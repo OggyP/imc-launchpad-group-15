@@ -78,7 +78,7 @@ class YourBot(StudentBot):
                 profit_per = sell_left[0] - buy_right[0]
                 volume = min(sell_left[1], buy_right[1])
                 profit = profit_per * volume
-                print("Profit per:", profit, profit_per, sell_left[0], buy_right[0])
+                # print("Profit per:", profit, profit_per, sell_left[0], buy_right[0])
                 if profit > 0:
                     print("ARB Found:", arb_left, arb_right, "Profit:", profit)
                     print("Prices:", sell_left[2], buy_right[2])
@@ -94,11 +94,14 @@ class YourBot(StudentBot):
                 profit_per = sell_right[0] - buy_left[0]
                 volume = min(sell_right[1], buy_left[1])
                 profit = profit_per * volume
-                print("Profit per:", profit, profit_per, sell_right[0], buy_left[0])
+                # print("Profit per:", profit, profit_per, sell_right[0], buy_left[0])
                 if profit > 0:
                     print("ARB Found:", arb_right, arb_left, "Profit:", profit)
                     print("Prices:", sell_right[2], buy_left[2])
+                    print("Sell:", list(zip(arb_right, sell_right[2])), "Buy:", list(zip(arb_left, buy_left[2])))
                     print("Prices for each product:", list(zip(arb_right, sell_right[2])), list(zip(arb_left, buy_left[2])))
+                    print("Volume:", volume)
+                
 
                     for i, prod in enumerate(arb_right):
                         self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_right[2][i], volume=volume))
@@ -114,7 +117,7 @@ class YourBot(StudentBot):
 
         # products = [C, L, B, CLB, CL]     
 
-        print(orderbooks.keys())
+        # print(orderbooks.keys())
 
         self.arbitrage(orderbooks)    
         self.regularize_position()
