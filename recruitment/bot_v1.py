@@ -59,7 +59,8 @@ class YourBot(StudentBot):
         positions = self.get_positions()
         for product, position in positions.items():
             order = self.get_position_regularization_order(product, position)
-            self.hit(order)
+            if order.volume > 0:
+                self.hit(order)
 
     def on_orderbooks(self, orderbooks: dict[str, OrderBook]):
 
