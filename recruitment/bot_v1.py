@@ -14,6 +14,7 @@ CL = "SALAD"
 
 FEE = 0
 BLOCK_TIME = 2
+ARB_BLOCK_TIME = 1
 
 class YourBot(StudentBot):
     def __init__(self, *args, **kwargs):
@@ -23,6 +24,7 @@ class YourBot(StudentBot):
                     [[CL], [C, L]]
                 ]
         self.block_time = None
+        self.block_arb = {}
 
     # returns None if no quotes, else [price, volume]
 
@@ -95,6 +97,12 @@ class YourBot(StudentBot):
         volume = min(sell_quote[1], buy_quote[1])
         if volume <= 0 or sell_quote[0] <= buy_quote[0]:
             return
+
+        profit = (sell_quote[0] - buy_quote[0]) * volume
+        if time.time() < self.block_arb.get(profit, 0):
+            return
+
+        self.block_arb[profit] = time.time() + ARB_BLOCK_TIME
 
         print("ARB Found:", sell_products, buy_products,
               "Profit:", (sell_quote[0] - buy_quote[0]) * volume)
