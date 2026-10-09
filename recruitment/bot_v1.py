@@ -80,6 +80,7 @@ class YourBot(StudentBot):
             sell_right = self.best_price("SELL", arb_right, orderbooks)
 
             if sell_left != None and buy_right != None:
+                print("Profit per:", sell_left[0], buy_right[0])
                 profit_per = sell_left[0] - buy_right[0]
                 volume = min(sell_left[1], buy_right[1])
                 profit = profit_per * volume
@@ -96,15 +97,33 @@ class YourBot(StudentBot):
                     # arb possible 
 
             if sell_right != None and buy_left != None:
+                print("Profit per:", sell_right[0], buy_left[0])
                 profit_per = sell_right[0] - buy_left[0]
                 volume = min(sell_right[1], buy_left[1])
                 profit = profit_per * volume
                 if profit > 0:
+                    print("ARB Found:", arb_right, arb_left, "Profit:", profit)
+                    print("Prices:", sell_right[2], buy_left[2])
+                    print("Prices for each product:", list(zip(arb_right, sell_right[2])), list(zip(arb_left, buy_left[2])))
+
                     for i, prod in enumerate(arb_right):
                         self.hit(OrderRequest(product=prod, side=Side.SELL, price=sell_right[2][i], volume=sell_right[1]))
                     for i, prod in enumerate(arb_left):
                         self.hit(OrderRequest(product=prod, side=Side.BUY, price=buy_left[2][i], volume=buy_left[1]))
                     # arb possible 
+
+
+    def on_orderbooks(self, orderbooks: dict[str, OrderBook]):
+        # TODO: implement smart money making strategies in this handler
+        # This will run everytime an orderbook updates.
+        # The method receives a dictionary of {PRODUCT_NAME (str): OrderBook}
+        # You are not guaranteed to have a valid orderbook for every product.
+
+        # products = [C, L, B, CLB, CL]     
+
+        print(orderbooks.keys())
+
+        
 
 
         # print("Hitting LETTUCE")
