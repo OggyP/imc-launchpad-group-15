@@ -37,6 +37,23 @@ class YourBot(StudentBot):
 
     def regularize_position(self):
         positions = self.get_positions()
+
+        positions.setdefault(L, 0)
+        positions.setdefault(C, 0)
+        positions.setdefault(B, 0)
+        positions.setdefault(CLB, 0)
+        positions.setdefault(CL, 0)
+
+        positions[C] += positions[CLB]
+        positions[L] += positions[CLB]
+        positions[B] += positions[CLB]
+
+        positions[C] += positions[CL]
+        positions[L] += positions[CL]
+
+        positions[CL] = 0
+        positions[CLB] = 0
+        
         for product, position in positions.items():
             order = self.get_position_regularization_order(product, position)
             if order.volume > 0:
