@@ -46,6 +46,10 @@ class YourBot(StudentBot):
             return (price, 0 if volume == None else volume, prices)
 
     def amount_to_buy_for_regularization(self, position: int):
+        if position > 100:
+            return -5
+        if position < -100:
+            return 5
         return 0
 
     def get_position_regularization_order(self, product: str, position: int):
@@ -59,7 +63,8 @@ class YourBot(StudentBot):
         positions = self.get_positions()
         for product, position in positions.items():
             order = self.get_position_regularization_order(product, position)
-            self.hit(order)
+            if order.volume > 0:
+                self.hit(order)
 
     def arbitrage(self, orderbooks: dict[str, OrderBook]):
         for arb_left, arb_right in self.arbs:
