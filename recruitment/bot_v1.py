@@ -25,9 +25,9 @@ class YourBot(StudentBot):
 
     def amount_to_buy_for_regularization(self, position: int):
         if position > 100:
-            return -5
+            return int(- 2 * round(position / 150))
         if position < -100:
-            return 5
+            return int(2 * round(position / 150))
         return 0
 
     def get_position_regularization_order(self, product: str, position: int):
