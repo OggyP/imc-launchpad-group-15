@@ -27,8 +27,11 @@ class YourBot(StudentBot):
     # returns None if no quotes, else [price, volume]
 
     def amount_to_buy_for_regularization(self, position: int):
-        if abs(position) > 100:
-            return int(- 2 * round(position / 150))
+        if position > 100:
+            # return int(- 2 * round(position / 150))
+            return -10
+        if position < -100:
+            return 10
         return 0
 
     def get_position_regularization_order(self, product: str, position: int):
